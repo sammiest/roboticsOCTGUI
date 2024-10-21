@@ -12,8 +12,10 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 #from igmr_robotics_toolkit.control.simulator import Simulator
 from igmr_robotics_toolkit.collision.collider import Collider
 from igmr_robotics_toolkit.node.robot_state_bridge import RobotState
-if TYPE_CHECKING:
-    from igmr_robotics_toolkit.control.controller import ControllerBase
+from igmr_robotics_toolkit.comms.types import JointVector, Pose, Twist, Wrench
+from igmr_robotics_toolkit.control.program import ProgramBase
+
+from igmr_robotics_toolkit.control.controller import ControllerBase
 import RAOCTg2
 from RAOCTg2.robot_controller.control import Coordinator, StrategyProgram
 
@@ -39,6 +41,10 @@ from igmr_robotics_toolkit.node.speech import Speaker
 from igmr_robotics_toolkit.node.robot_state_bridge import RobotState 
 from igmr_robotics_toolkit.util import parse_xform, asanglearray
 from igmr_robotics_toolkit.node.robot_state_bridge import RobotStateBridge
+#from igmr_robotics_toolkit.control.state import RobotState
+from igmr_robotics_toolkit.control.observer import ObserverBase
+from cyclonedds.idl import IdlStruct, types
+
 
 import sys
 import yaml
@@ -772,21 +778,95 @@ class Ui_IndexWindow(object):
         self._robot_state = SubscribedStateBuffer(self._params.get('robot/topic'), RobotState, expiration=lambda s: s.timestamp + 0.1, domain_participant=self._domain_participant)
 
         self._robot_coordinator = Coordinator()
-        self._program = StrategyProgram(
-            controller=self._robot_coordinator,
-            params=self._robot_coordinator._params,
-            speaker=Speaker(domain_participant=self._domain_participant),
-            motion_log_path=None,
-        )
+       # self._control_strat = StrategyProgram(ActionProgram)
 
+        #self._control_strat.
+        self._control_strat= StrategyProgram(
+            controller = self._robot_coordinator,
+            params = self._robot_coordinator._params,
+            speaker = self._robot_coordinator._speaker,
+            motion_log_path = None,
+        ) 
+        #self._robot_coordinator.__init__(self)
+        #self._robot_coordinator.
 
+    #_log = igmr_robotics_toolkit.logger(__file__) TODO
        # robot_state = self.initialize_robot_state(config_file_path)
         match state:
             case 'home':
                 self._robot_coordinator.change_strategy('home')
                 print('home')
-                self._program.update(self,  ControllerBase, RobotState)
-                #self._program.update( self._program, self._robot_state)
+               # self._program.update(self,  ControllerBase, RobotState)
+               # print(RobotState(IdlStruct))
+                """  self.update(self._program, RobotState(IdlStruct))
+                self._program.update( self._program, RobotState(IdlStruct)) """
+                #controller=ControllerBase()
+                _controller_base_ = ControllerBase()
+                # Sample values for each attribute
+                model_path = "models/robot_v1.0.urdf"
+                robot_host = "192.168.1.100"
+                robot_id = "robot_001"
+
+                host_sequence = 42
+                robot_sequence = 84
+
+                host_timestamp = 1630454400.0  # Example timestamp (in seconds)
+                robot_timestamp = 1630454400.5  # Example timestamp (in seconds)
+
+# Example JointVector initialization (assuming it's a list or similar)
+                actual_q = JointVector([0.0, 0.5, -0.5, 1.0])  # Joint positions
+                actual_qd = JointVector([0.1, 0.2, -0.1, 0.3])  # Joint velocities
+                actual_qdd = JointVector([0.0, 0.0, 0.0, 0.0])  # Joint accelerations
+
+                target_q = JointVector([0.0, 0.5, 0.5, 1.5])
+                target_qd = JointVector([0.1, 0.2, 0.0, 0.2])
+                target_qdd = JointVector([0.0, 0.0, 0.0, 0.0])
+
+# Example Pose, Twist, and Wrench initialization
+                actual_ee = Pose(position=[1.0, 1.0, 1.0], orientation=[0.0, 0.0, 0.0, 1.0])
+                actual_ee_twist = Twist(angular=[0.0, 0.0, 0.0], linear=[0.0, 0.0, 0.0])
+                actual_ee_wrench = Wrench(force=[0.0, 0.0, -9.81], torque=[0.0, 0.0, 0.0])
+
+                target_ee = Pose(position=[1.0, 1.0, 1.5], orientation=[0.0, 0.0, 0.0, 1.0])
+                target_ee_twist = Twist(angular=[0.0, 0.0, 0.1], linear=[0.0, 0.0, 0.0])
+                target_ee_wrench = Wrench(force=[0.0, 0.0, -9.81], torque=[0.0, 0.0, 0.0])
+
+                actual_torque = JointVector([0.5, 0.5, 0.5, 0.5])
+                target_torque = JointVector([0.7, 0.7, 0.7, 0.7])
+
+                external_torque = JointVector([0.0, 0.0, 0.0, 0.0])
+                external_ee_wrench = Wrench(force=[0.0, 0.0, 0.0], torque=[0.0, 0.0, 0.0])
+
+# Create an instance of RobotState
+                robot_state = RobotState(
+                    model_path=model_path,
+                    robot_host=robot_host,
+                    robot_id=robot_id,
+                    host_sequence=host_sequence,
+                    robot_sequence=robot_sequence,
+                    host_timestamp=host_timestamp,
+                    robot_timestamp=robot_timestamp,
+                    actual_q=actual_q,
+                    actual_qd=actual_qd,
+                    actual_qdd=actual_qdd,
+                    target_q=target_q,
+                    target_qd=target_qd,
+                    target_qdd=target_qdd,
+                    actual_ee=actual_ee,
+                    actual_ee_twist=actual_ee_twist,
+                    actual_ee_wrench=actual_ee_wrench,
+                    target_ee=target_ee,
+                    target_ee_twist=target_ee_twist,
+                    target_ee_wrench=target_ee_wrench,
+                    actual_torque=actual_torque,
+                    target_torque=target_torque,
+                    external_torque=external_torque,
+                    external_ee_wrench=external_ee_wrench,
+                )
+
+# Now `robot_state` holds an instance of RobotState with arbitrary values.
+
+                self._control_strat.update( _controller_base_ ,  _robot_state)
                # self.update_and_print_robot_state()
             case 'jog':
                 self._robot_coordinator.change_strategy('jog')
