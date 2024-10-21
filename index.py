@@ -7,7 +7,36 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
+#import igmr_robotics_toolkit.robot.loader 
+#from igmr_robotics_toolkit.robot.loader import load_robot
+#from igmr_robotics_toolkit.control.simulator import Simulator
+from igmr_robotics_toolkit.collision.collider import Collider
+import RAOCTg2
+from RAOCTg2.robot_controller.control import Coordinator
 
+from cyclonedds.domain import DomainParticipant
+from cyclonedds.qos import Qos, Policy
+from cyclonedds.sub import Subscriber, DataReader
+from cyclonedds.pub import Publisher, DataWriter
+from cyclonedds.topic import Topic
+from cyclonedds.util import duration
+
+from igmr_robotics_toolkit.comms.frame import FrameResolver
+from igmr_robotics_toolkit.comms.params import ParameterClient, StateClient
+from igmr_robotics_toolkit.comms.history import SubscribedStateBuffer
+from igmr_robotics_toolkit.control.controller import ControlError
+from igmr_robotics_toolkit.control.action import ActionProgram
+from igmr_robotics_toolkit.control.action.position_trajectory import BufferedJointTrajectoryAction
+from igmr_robotics_toolkit.control.action.dynamic_trajectory import DynamicTrajectoryAction
+from igmr_robotics_toolkit.control.action.jogging import JoystickJoggingAction
+from igmr_robotics_toolkit.io.gamepad import Gamepad
+from igmr_robotics_toolkit.math import hinv
+from igmr_robotics_toolkit.node.speech import Speaker
+from igmr_robotics_toolkit.node.robot_state_bridge import RobotState 
+from igmr_robotics_toolkit.util import parse_xform, asanglearray
+from igmr_robotics_toolkit.node.robot_state_bridge import RobotStateBridge
+
+import sys
 
 class Ui_IndexWindow(object):
     def switch_to_Setup_Page(self):
@@ -473,6 +502,8 @@ class Ui_IndexWindow(object):
         self.Robotcnt_choose_btn.setFont(font)
         self.Robotcnt_choose_btn.setObjectName("Robotcnt_choose_btn")
         self.Robotcnt_choose_btn.clicked.connect(self.find_current_Robot_index)
+        #self.commandLinkButton_5.clicked.connect(self.robot_action('home'))
+        self.commandLinkButton_5.clicked.connect(lambda: self.robot_action('home'))
 
         self.stackedWidget.addWidget(self.Robot_Page)
         self.Localize_Page = QtWidgets.QWidget()
@@ -586,6 +617,8 @@ class Ui_IndexWindow(object):
         self.Setting_Btn.setIconSize(QtCore.QSize(40, 40))
         self.Setting_Btn.setCheckable(True)
         self.Setting_Btn.setObjectName("Setting_Btn")
+        #here
+       # self.Setting_Btn.clicked.connect(self.show_dialog)
         self.line_3 = QtWidgets.QFrame(parent=self.Main_Frame)
         self.line_3.setGeometry(QtCore.QRect(0, 110, 1280, 16))
         self.line_3.setLineWidth(3)
@@ -631,9 +664,9 @@ class Ui_IndexWindow(object):
         self.lineEdit_3.setText(_translate("IndexWindow", "172 - 31 - 1 - 147"))
         self.commandLinkButton_5.setText(_translate("IndexWindow", "Pack"))
         self.commandLinkButton_6.setText(_translate("IndexWindow", "Unpack"))
-        self.label_23.setText(_translate("IndexWindow", "Move Cart:"))
-        self.label_2.setText(_translate("IndexWindow", "Robot Controler:"))
-        self.label_24.setText(_translate("IndexWindow", "Lift Controler"))
+        self.label_23.setText(_translate("IndexWindow", "Home:"))
+        self.label_2.setText(_translate("IndexWindow", "Robot Controller:"))
+        self.label_24.setText(_translate("IndexWindow", "Lift Controller"))
         self.label_26.setText(_translate("IndexWindow", "-"))
         self.label_27.setText(_translate("IndexWindow", "+"))
         self.label_28.setText(_translate("IndexWindow", "Middle"))
@@ -669,16 +702,57 @@ class Ui_IndexWindow(object):
         self.Robotcnt_choose_btn.setText(_translate("IndexWindow", "Choose"))
         self.label_3.setText(_translate("IndexWindow", "Localize"))
         self.label_4.setText(_translate("IndexWindow", "Navigate"))
-        self.label_5.setText(_translate("IndexWindow", "REVIEW"))
+        self.label_5.setText(_translate("IndexWindow", "Review"))
         self.Setup_Menu.setText(_translate("IndexWindow", "Setup"))
         self.Robot_Menu.setText(_translate("IndexWindow", "Robot"))
         self.Localize_Menu.setText(_translate("IndexWindow", "Localize"))
         self.Nav_Menu.setText(_translate("IndexWindow", "Navigate"))
         self.Review_Menu.setText(_translate("IndexWindow", "Review"))
+    #def update_and_print_robot_state(self):
+        # Assuming you can get the current state from `self._controller` or `self._state`
+        # You may need to adapt the method of fetching states depending on your actual robot API.
+        #robot_state = RobotState()
+       # self._state = RobotStateBridge(params=pc.scope('robot'))
+        #if hasattr(robot_controller, 'get_state'):
+         #   current_state = robot_controller._state.get()  # Hypothetical method for fetching the robot state
+       # else:
+           # current_state = robot_controller._state.get('robot/state')  # Or get from the state object
 
+       # print(f"Current Robot State: {current_state}")
+    def robot_action(self, state):
+        robot_controller = Coordinator()
+        #robot_state = RobotState() 
+        match state:
+            case 'home':
+                robot_controller.change_strategy('home')
+                print('home')
+                #robot_controller.update(robot_controller, robot_state)
+               # self.update_and_print_robot_state()
+            case 'jog':
+                robot_controller.change_strategy('jog')
+                print('jog')
+            case 'watch':
+                robot_controller.change_strategy('watch')
+                print('watch')
+            case 'face_tracking':
+                robot_controller.change_strategy('face_tracking')
+                print('face tracking')
+            case 'pupil_tracking':
+                robot_controller.change_strategy('pupil_tracking')
+                print('pupil tracking')
+            case 'retreat':
+                robot_controller.change_strategy('retreat')
+"""     def show_dialog(self):
+        dialog = QtWidgets.QMessageBox()
+        dialog.setWindowTitle("Settings Popup")
+        dialog.setText("HELLO.")
+        dialog.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Cancel)
+        dialog.resize(1000, 600) 
+        dialog.exec()# Open the pop-up window as a modal dialog """
 
 if __name__ == "__main__":
     import sys
+    #robot_controller = Coordinator()
     app = QtWidgets.QApplication(sys.argv)
     IndexWindow = QtWidgets.QMainWindow()
     ui = Ui_IndexWindow()
