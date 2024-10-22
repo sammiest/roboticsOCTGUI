@@ -48,10 +48,16 @@ from igmr_robotics_toolkit.node.robot_state_bridge import RobotStateBridge
 from igmr_robotics_toolkit.control.observer import ObserverBase
 from cyclonedds.idl import IdlStruct, types
 
-
+from RAOCTg2.viewer.app import App
 import sys
 import yaml
 config_file_path = r'C:\Users\sammiest\IGMR\RAOCTg2\config.yaml'
+
+class Panda3DWidget(QtWidgets):
+    def __init__(self, **kwargs):
+        app = App()
+        app.run()
+        app
 
 class Ui_IndexWindow(object):
     def switch_to_Setup_Page(self):
@@ -61,7 +67,23 @@ class Ui_IndexWindow(object):
         self.stackedWidget.setCurrentIndex(2)
 
     def switch_to_Localize_Page(self):
-        self.stackedWidget.setCurrentIndex(3)
+        self.stackedWidget.setCurrentIndex(3)    
+        
+       # self.stackedWidget.addWidget( app._window)
+       # app._window
+        
+    """     self.stackedWidget.addWidget(self.Robot_Page)
+        self.Localize_Page = QtWidgets.QWidget()
+        self.Localize_Page.setObjectName("Localize_Page")
+        self.label_3 = QtWidgets.QLabel(parent=self.Localize_Page)
+        self.label_3.setGeometry(QtCore.QRect(340, 60, 181, 141))
+        font = QtGui.QFont()
+        font.setPointSize(20)
+        self.label_3.setFont(font)
+        self.label_3.setObjectName("label_3")
+        self.stackedWidget.addWidget(self.Localize_Page) """
+        
+        
 
     def switch_to_Nav_Page(self):
         self.stackedWidget.setCurrentIndex(4)
@@ -804,9 +826,20 @@ class Ui_IndexWindow(object):
         match state:
             case 'home':
                 print('HELLO')
-                robotstate = RobotState()
+                robotstate = RobotState('','','','','','','','','','','','','','','','','','','','','','','')
                 base = ControllerBase()
-                StrategyProgram.update(self, base,robotstate) #help
+                StrategyProgram.update(self, base, robotstate)
+       
+                
+               
+#               StrategyProgram.update(self, base, robotstate.model_path, robotstate.robot_host,  robotstate.robot_id, 
+#                                        robotstate.host_sequence, robotstate.robot_sequence, robotstate.host_timestamp,
+#                                        robotstate.robot_timestamp, robotstate.actual_q, 
+#                                        robotstate.actual_qd, robotstate.actual_qdd, robotstate.target_q, robotstate.target_qd, 
+#                                        robotstate.target_qdd, robotstate.actual_ee, robotstate.actual_ee_twist, 
+#                                        robotstate.actual_ee_wrench, robotstate.target_ee, robotstate.target_ee_twist, 
+#                                        robotstate.target_ee_wrench, robotstate.actual_torque, robotstate.target_torque, 
+#                                        robotstate.external_torque,  robotstate.external_ee_wrench) #help
                 self._robot_coordinator.change_strategy('home')
                
                 print('home')
@@ -843,7 +876,20 @@ class Ui_IndexWindow(object):
         dialog.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok | QtWidgets.QMessageBox.StandardButton.Cancel)
         dialog.resize(1000, 600) 
         dialog.exec()# Open the pop-up window as a modal dialog """
+        
+class cyclonedds:
+    def __init__(self, **kwargs):
+        self._domain_participant = DomainParticipant()
+        self._subscriber = Subscriber(self._domain_participant)
+        
+        self._params = ParameterClient(domain_participant=self._domain_participant)
+        self._state = StateClient(domain_participant=self._domain_participant)
+        self._resolver = FrameResolver(domain_participant=self._domain_participant)
+        
+        self._robot_state = SubscribedStateBuffer(self._params.get('robot/topic'), RobotState, expiration=lambda s: s.timestamp + 0.1, domain_participant=self._domain_participant)
 
+    
+    
 if __name__ == "__main__":
     import sys
     #robot_controller = Coordinator()
@@ -852,13 +898,22 @@ if __name__ == "__main__":
     ui = Ui_IndexWindow()
     ui.setupUi(IndexWindow)
     IndexWindow.show()
-    ps = launch('igmr_robotics_toolkit.comms.params')
+    """     ps = launch('igmr_robotics_toolkit.comms.params')
     sleep(1)
     watch (
         ps,
         launch('igmr_robotics_toolkit.node.robot_state_bridge', scope='robot'),
         launch('RAOCTg2.robot_controller.control'),
-    )
+    ) """
+    
+    """ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+    parser = ArgumentParser(description='Viewer', formatter_class=ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument('--debug', action='store_true', help='do not catch SIGINT')
+    args = parser.parse_args(sys.argv[1:])
+    c = Coordinator(control=dict(motion_log_path=args.motion_log)) """
+    c = Coordinator()
+    c.run
     print('done')
     sys.exit(app.exec())
     
