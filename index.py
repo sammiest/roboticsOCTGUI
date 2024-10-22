@@ -814,28 +814,38 @@ class Ui_IndexWindow(object):
                 robot_timestamp = 1630454400.5  # Example timestamp (in seconds)
 
 # Example JointVector initialization (assuming it's a list or similar)
-                actual_q = JointVector([0.0, 0.5, -0.5, 1.0])  # Joint positions
-                actual_qd = JointVector([0.1, 0.2, -0.1, 0.3])  # Joint velocities
-                actual_qdd = JointVector([0.0, 0.0, 0.0, 0.0])  # Joint accelerations
+                # Example initialization for JointVector assuming it needs 'data' argument
+      # Example initialization of JointVector instances
+                actual_q = JointVector(data=[0.0, 0.5, -0.5, 1.0], shape=(4,))  # Joint positions
+                actual_qd = JointVector(data=[0.1, 0.2, -0.1, 0.3], shape=(4,))  # Joint velocities
+                actual_qdd = JointVector(data=[0.0, 0.0, 0.0, 0.0], shape=(4,))  # Joint accelerations
 
-                target_q = JointVector([0.0, 0.5, 0.5, 1.5])
-                target_qd = JointVector([0.1, 0.2, 0.0, 0.2])
-                target_qdd = JointVector([0.0, 0.0, 0.0, 0.0])
+                target_q = JointVector(data=[0.0, 0.5, 0.5, 1.5], shape=(4,))
+                target_qd = JointVector(data=[0.1, 0.2, 0.0, 0.2], shape=(4,))
+                target_qdd = JointVector(data=[0.0, 0.0, 0.0, 0.0], shape=(4,))
+
 
 # Example Pose, Twist, and Wrench initialization
-                actual_ee = Pose(position=[1.0, 1.0, 1.0], orientation=[0.0, 0.0, 0.0, 1.0])
-                actual_ee_twist = Twist(angular=[0.0, 0.0, 0.0], linear=[0.0, 0.0, 0.0])
-                actual_ee_wrench = Wrench(force=[0.0, 0.0, -9.81], torque=[0.0, 0.0, 0.0])
-
-                target_ee = Pose(position=[1.0, 1.0, 1.5], orientation=[0.0, 0.0, 0.0, 1.0])
-                target_ee_twist = Twist(angular=[0.0, 0.0, 0.1], linear=[0.0, 0.0, 0.0])
-                target_ee_wrench = Wrench(force=[0.0, 0.0, -9.81], torque=[0.0, 0.0, 0.0])
-
-                actual_torque = JointVector([0.5, 0.5, 0.5, 0.5])
-                target_torque = JointVector([0.7, 0.7, 0.7, 0.7])
-
-                external_torque = JointVector([0.0, 0.0, 0.0, 0.0])
-                external_ee_wrench = Wrench(force=[0.0, 0.0, 0.0], torque=[0.0, 0.0, 0.0])
+                actual_ee = Pose(data=[1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0], shape=(7,))  # Assuming shape is 7 for x, y, z, qx, qy, qz, qw
+                target_ee = Pose(data=[1.0, 1.0, 1.5, 0.0, 0.0, 0.0, 1.0], shape=(7,))
+                actual_ee_twist = Twist()
+    
+                # Set all linear and angular values to 0
+                actual_ee_twist.linear.x = 0.0
+                actual_ee_twist.linear.y = 0.0
+                actual_ee_twist.linear.z = 0.0
+    
+                actual_ee_twist.angular.x = 0.0
+                actual_ee_twist.angular.y = 0.0
+                actual_ee_twist.angular.z = 0.0
+                # Assuming shape is 6 for angular and linear
+                target_ee_twist = Twist(data=[0.0, 0.0, 0.1, 0.0, 0.0, 0.0], shape=(6,))
+                actual_ee_wrench = Wrench(data=[0.0, 0.0, -9.81, 0.0, 0.0, 0.0], shape=(6,))  # Assuming shape is 6 for force and torque
+                target_ee_wrench = Wrench(data=[0.0, 0.0, -9.81, 0.0, 0.0, 0.0], shape=(6,))
+                actual_torque = JointVector(data=[0.5, 0.5, 0.5, 0.5], shape=(4,))  # Assuming shape is 4
+                target_torque = JointVector(data=[0.7, 0.7, 0.7, 0.7], shape=(4,))
+                external_torque = JointVector(data=[0.0, 0.0, 0.0, 0.0], shape=(4,))
+                external_ee_wrench = Wrench(data=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], shape=(6,))  # Assuming shape is 6 for force and torque
 
 # Create an instance of RobotState
                 robot_state = RobotState(
